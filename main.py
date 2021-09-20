@@ -12,7 +12,7 @@ class Client:
     def __init__(self) -> None:
         self.session = requests.session()
 
-        source = self.session.get("https://ua.scu.edu.cn/login").text
+        source = self.session.get("https://ua.scu.edu.cn/login", timeout=60).text
         self.data_execution = re.findall(
             r'input name="execution" value="(.*?)"/>', source
         )[0]
@@ -42,7 +42,9 @@ class Client:
         return result.status_code == 200
 
     def submit(self) -> None:
-        source = self.session.get("https://wfw.scu.edu.cn/ncov/wap/default/index").text
+        source = self.session.get(
+            "https://wfw.scu.edu.cn/ncov/wap/default/index", timeout=60
+        ).text
         if "oldInfo" not in source:
             raise Exception("oldInfo not found!")
 
@@ -51,7 +53,7 @@ class Client:
         new_info["created"] = round(time.time())
 
         result = self.session.post(
-            "https://wfw.scu.edu.cn/ncov/wap/default/save", data=new_info
+            "https://wfw.scu.edu.cn/ncov/wap/default/save", data=new_info, timeout=60
         )
         result_json = json.loads(result.text)
         if result_json["e"] != 0:
@@ -71,3 +73,7 @@ def main():
         elif i + 1 == max_retry_times:
             exit(1)
     client.submit()
+
+
+if __name__ == "__main__":
+    main()
