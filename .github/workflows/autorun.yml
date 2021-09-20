@@ -1,0 +1,26 @@
+name: autorun
+
+on:
+  schedule:
+    - cron: '0 17 * * *' # runs at 17:00 UTC, 1:00 CST everyday
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v2
+
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: install python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: execute py script
+        # github will replace the secrets in the command with *** so it wouldn't appear in the log.
+        run: python main.py ${{ secrets.SCU_USERNAME }} ${{ secrets.SCU_PASSWORD }}
