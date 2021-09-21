@@ -2,7 +2,7 @@ name: autorun
 
 on:
   schedule:
-    - cron: '0 17 * * *' # runs at 17:00 UTC, 1:00 CST everyday
+    - cron: '10 16 * * *' # runs at 16:10 UTC, 00:10 China time
 
 jobs:
   build:
