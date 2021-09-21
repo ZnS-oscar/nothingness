@@ -6,29 +6,58 @@ import sys
 import re
 
 max_retry_times = 10
+request_timeout = 60
 
 
 class Client:
     def __init__(self) -> None:
         self.session = requests.session()
 
-        source = self.session.get("https://ua.scu.edu.cn/login", timeout=60).text
+        source = self._get("https://ua.scu.edu.cn/login").text
         self.data_execution = re.findall(
             r'input name="execution" value="(.*?)"/>', source
         )[0]
         self.captcha_id = re.findall(
-            r"config.captcha = {\n    type: \'image\',\n    id: \'(\d+)\'\n}", source
+            r"config.captcha\s*=\s*{\s*type:\s*'image',\s*id:\s*'(\d+)'\s*}", source
         )[0]
 
+    def _get(
+        self, url: str, timeout: int = request_timeout, wait_time: int = 5
+    ) -> requests.Response:
+        response: requests.Response
+        for i in range(max_retry_times):
+            try:
+                response = self.session.get(url, timeout=timeout)
+            except:
+                time.sleep(wait_time)
+                if i + 1 == max_retry_times:
+                    raise Exception("Max retries exceeded.")
+
+        return response
+
+    def _post(
+        self, url: str, data: dict, timeout: int = request_timeout, wait_time: int = 5
+    ) -> requests.Response:
+        response: requests.Response
+        for i in range(max_retry_times):
+            try:
+                response = self._post(url, data, timeout=timeout)
+            except:
+                time.sleep(wait_time)
+                if i + 1 == max_retry_times:
+                    raise Exception("Max retries exceeded.")
+
+        return response
+
     def get_captcha(self) -> bytes:
-        return self.session.get(
+        return self._get(
             "https://ua.scu.edu.cn/captcha?captchaId=" + self.captcha_id
         ).content
 
-    def login(self, username: str, password: str, captcha: str):
-        result = self.session.post(
+    def login(self, username: str, password: str, captcha: str) -> bool:
+        response = self._post(
             "https://ua.scu.edu.cn/login",
-            data={
+            {
                 "username": username,
                 "password": password,
                 "captcha": captcha,
@@ -39,12 +68,10 @@ class Client:
             },
         )
 
-        return result.status_code == 200
+        return response.status_code == 200
 
     def submit(self) -> None:
-        source = self.session.get(
-            "https://wfw.scu.edu.cn/ncov/wap/default/index", timeout=60
-        ).text
+        source = self._get("https://wfw.scu.edu.cn/ncov/wap/default/index").text
         if "oldInfo" not in source:
             raise Exception("oldInfo not found!")
 
@@ -52,10 +79,8 @@ class Client:
         new_info = old_info
         new_info["created"] = round(time.time())
 
-        result = self.session.post(
-            "https://wfw.scu.edu.cn/ncov/wap/default/save", data=new_info, timeout=60
-        )
-        result_json = json.loads(result.text)
+        response = self._post("https://wfw.scu.edu.cn/ncov/wap/default/save", new_info)
+        result_json = json.loads(response.text)
         if result_json["e"] != 0:
             raise Exception("failed to submit!")
 
