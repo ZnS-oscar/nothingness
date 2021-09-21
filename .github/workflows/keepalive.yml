@@ -1,0 +1,19 @@
+name: keepalive
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # runs at 00:00 UTC on the first day of every month
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v2
+
+      - name: push empty commit
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit --allow-empty -m "keep workflow alive"
+          git push
