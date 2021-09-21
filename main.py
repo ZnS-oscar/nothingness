@@ -9,6 +9,9 @@ import re
 max_login_retry_times = 20
 max_connection_retry_times = 10
 request_timeout = 60
+request_retry_wait_time = 5
+login_retry_wait_time = 5
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,7 +31,10 @@ class Client:
         logging.info("got data_execution and captcha_id.")
 
     def _get(
-        self, url: str, timeout: int = request_timeout, wait_time: int = 5
+        self,
+        url: str,
+        timeout: int = request_timeout,
+        wait_time: int = request_retry_wait_time,
     ) -> requests.Response:
         response: requests.Response
         for i in range(max_connection_retry_times):
@@ -45,7 +51,11 @@ class Client:
         return response
 
     def _post(
-        self, url: str, data: dict, timeout: int = request_timeout, wait_time: int = 5
+        self,
+        url: str,
+        data: dict,
+        timeout: int = request_timeout,
+        wait_time: int = request_retry_wait_time,
     ) -> requests.Response:
         response: requests.Response
         for i in range(max_connection_retry_times):
@@ -120,6 +130,7 @@ def main():
             raise Exception("max retries exceed when trying to login")
 
         logging.warning("wrong credentials or captcha, retrying...")
+        time.sleep(login_retry_wait_time)
 
     client.submit()
 
