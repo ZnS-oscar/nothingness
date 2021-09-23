@@ -194,10 +194,11 @@ def main():
         old_info = client.get_old_info()
 
     new_info = client.update_info(old_info)
-    client.submit(new_info)
 
     with open(cookies_file_name, "w") as f:
         f.write(client.get_cookies())
+
+    client.submit(new_info)
 
 
 if __name__ == "__main__":
