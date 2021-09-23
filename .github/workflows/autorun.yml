@@ -1,8 +1,11 @@
 name: autorun
 
 on:
-  schedule:
-    - cron: '10 16 * * *' # runs at 16:10 UTC, 00:10 China time
+  # schedule:
+  #   - cron: '10 16 * * *' # runs at 16:10 UTC, 00:10 China time
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -21,6 +24,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: create secret file if exists
+        env:
+          COOKIES: ${{ secrets.COOKIES }}
+        if: "${{ env.COOKIES != '' }}"
+        run: echo $COOKIES > cookies
+
       - name: execute py script
         # github will replace the secrets in the command with *** so it wouldn't appear in the log.
         run: python main.py ${{ secrets.SCU_USERNAME }} ${{ secrets.SCU_PASSWORD }}
+
+      - name: update the secret cookie
+        if: hashFiles('cookies') != ''
+        run: |
+          python github-update-secrets.py $GITHUB_REPOSITORY ${{ secrets.TOKEN }} COOKIES $(cat cookies)
+          rm cookies
