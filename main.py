@@ -156,7 +156,7 @@ class Client:
         result_json = self._post(
             "https://wfw.scu.edu.cn/ncov/wap/default/save", info
         ).json()
-        if result_json["e"] != 0:
+        if result_json["e"] not in [0, 1]:
             raise Exception(f"failed to submit! server returned: {result_json}")
 
     def get_cookies(self) -> str:
@@ -194,11 +194,10 @@ def main():
         old_info = client.get_old_info()
 
     new_info = client.update_info(old_info)
+    client.submit(new_info)
 
     with open(cookies_file_name, "w") as f:
         f.write(client.get_cookies())
-
-    client.submit(new_info)
 
 
 if __name__ == "__main__":
