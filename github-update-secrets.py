@@ -4,7 +4,7 @@ import requests
 from base64 import b64encode
 from nacl import encoding, public
 
-session = requests.session()
+session = requests.Session()
 
 
 def encrypt(public_key: str, secret_value: str) -> str:
