@@ -1,11 +1,8 @@
 name: autorun
 
 on:
-  # schedule:
-  #   - cron: '10 16 * * *' # runs at 16:10 UTC, 00:10 China time
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: '10 16 * * *' # runs at 16:10 UTC, 00:10 China time
 
 jobs:
   build:
